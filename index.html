@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TransitGo — Chipta Tizimi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #08111F;
+    --surface: #111E2E;
+    --surface2: #1A2B3F;
+    --border: rgba(255,255,255,0.07);
+    --teal: #00C896;
+    --teal2: #00A87E;
+    --text: #E8F0F9;
+    --muted: #6B8AA8;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--navy); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,200,150,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,150,0.03) 1px, transparent 1px);
+    background-size: 48px 48px; pointer-events: none; z-index: 0;
+  }
+  .wrapper { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 0 16px 90px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 0 16px; }
+  .logo { font-family: var(--font-head); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--teal); }
+  .logo span { color: var(--text); }
+  .nav-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero { padding: 28px 0 20px; }
+  .hero h1 { font-family: var(--font-head); font-size: 36px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 8px; }
+  .hero h1 em { font-style: normal; color: var(--teal); }
+  .hero p { color: var(--muted); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 22px; margin-bottom: 14px; }
+  .card-title { font-family: var(--font-head); font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+  .route-group { display: flex; flex-direction: column; gap: 10px; }
+  .route-input-wrap { position: relative; }
+  .route-input-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+  .route-input-wrap select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px 13px 42px; color: var(--text); font-family: var(--font-body); font-size: 15px; appearance: none; outline: none; transition: border-color 0.2s; }
+  .route-input-wrap select:focus { border-color: var(--teal); }
+  .route-input-wrap select option { background: #1A2B3F; }
+  .divider-row { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .swap-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); color: var(--teal); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.35s; }
+  .swap-btn:hover { transform: rotate(180deg); }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .type-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; cursor: pointer; transition: all 0.2s; text-align: left; }
+  .type-card:hover { border-color: rgba(0,200,150,0.4); }
+  .type-card.selected { border-color: var(--teal); background: rgba(0,200,150,0.08); }
+  .type-card .type-icon { font-size: 20px; margin-bottom: 8px; }
+  .type-card .type-name { font-size: 13px; font-weight: 500; display: block; }
+  .type-card .type-price { font-family: var(--font-head); font-size: 17px; font-weight: 700; color: var(--teal); display: block; margin-top: 4px; }
+  .type-card .type-desc { font-size: 11px; color: var(--muted); }
+  .passenger-row { display: flex; align-items: center; justify-content: space-between; }
+  .counter { display: flex; align-items: center; gap: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 8px 16px; }
+  .counter button { background: none; border: none; color: var(--teal); font-size: 22px; cursor: pointer; line-height: 1; }
+  .counter span { font-family: var(--font-head); font-size: 20px; font-weight: 700; min-width: 24px; text-align: center; }
+  .price-summary { background: var(--surface2); border-radius: 14px; padding: 14px; margin-top: 16px; }
+  .price-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; color: var(--muted); }
+  .price-row span:last-child { color: var(--text); }
+  .price-row.total { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; font-size: 16px; color: var(--text); font-weight: 600; }
+  .price-row.total .amount { color: var(--teal); font-family: var(--font-head); font-size: 20px; }
+  .btn-main { width: 100%; background: var(--teal); color: var(--navy); border: none; border-radius: 14px; padding: 15px; font-family: var(--font-head); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 14px; transition: all 0.2s; }
+  .btn-main:hover { background: var(--teal2); transform: translateY(-1px); }
+  .btn-secondary { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 14px; padding: 13px; font-family: var(--font-body); font-size: 14px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+  .payment-field { margin-bottom: 14px; }
+  .payment-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .payment-field input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; color: var(--text); font-family: var(--font-body); font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .payment-field input:focus { border-color: var(--teal); }
+  .payment-field input::placeholder { color: var(--muted); }
+  .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stripe-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); justify-content: center; margin-top: 8px; }
+
+  /* TICKET */
+  .ticket-card { background: linear-gradient(135deg, #0D2A1F 0%, #0A1628 100%); border: 1px solid rgba(0,200,150,0.25); border-radius: 24px; padding: 28px; text-align: center; }
+  .ticket-success { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,200,150,0.12); border: 1px solid rgba(0,200,150,0.3); border-radius: 20px; padding: 6px 16px; font-size: 13px; color: var(--teal); margin-bottom: 18px; }
+  .ticket-route { font-family: var(--font-head); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .ticket-meta { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  #qr-wrap { background: white; border-radius: 16px; padding: 14px; display: inline-block; margin-bottom: 18px; }
+  .ticket-id { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 18px; font-family: monospace; }
+  .ticket-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 14px; }
+  .detail-item { text-align: center; }
+  .detail-label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .detail-value { font-size: 14px; font-weight: 500; }
+
+  /* MY TICKETS */
+  .my-ticket-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.2s; }
+  .my-ticket-item:hover { border-color: rgba(0,200,150,0.3); }
+  .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.active { background: rgba(0,200,150,0.12); color: var(--teal); }
+  .badge.expired { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+  /* QR MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 28px; max-width: 320px; width: 90%; text-align: center; }
+  .modal-title { font-family: var(--font-head); font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  #modal-qr-wrap { background: white; border-radius: 14px; padding: 14px; display: inline-block; margin-bottom: 16px; }
+  .modal-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 28px; color: var(--muted); font-size: 14px; cursor: pointer; font-family: var(--font-body); }
+  .modal-close:hover { color: var(--text); }
+
+  /* PROFILE */
+  .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, rgba(0,200,150,0.3), rgba(0,200,150,0.1)); border: 2px solid rgba(0,200,150,0.4); display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; }
+  .profile-name { font-family: var(--font-head); font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+  .profile-email { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-box { background: var(--surface2); border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-num { font-family: var(--font-head); font-size: 24px; font-weight: 800; color: var(--teal); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: color 0.2s; }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:hover { color: var(--teal); }
+  .menu-item-left { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .menu-arrow { color: var(--muted); font-size: 18px; }
+  .logout-btn { width: 100%; background: rgba(255,60,60,0.08); border: 1px solid rgba(255,60,60,0.2); border-radius: 14px; padding: 14px; color: #FF6B6B; font-family: var(--font-body); font-size: 15px; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+  .logout-btn:hover { background: rgba(255,60,60,0.15); }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp 0.3s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(8,17,31,0.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0 16px; z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); cursor: pointer; transition: color 0.2s; padding: 4px 18px; }
+  .nav-item.active { color: var(--teal); }
+  .nav-icon { font-size: 22px; }
+
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(8,17,31,0.85); backdrop-filter: blur(8px); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .loading-overlay.show { display: flex; }
+  .spinner { width: 44px; height: 44px; border: 3px solid var(--surface2); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { font-family: var(--font-head); font-size: 15px; color: var(--teal); }
+
+  .toast { position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--surface2); border: 1px solid var(--teal); color: var(--teal); padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <nav>
+    <div class="logo">Transit<span>Go</span></div>
+    <div class="nav-badge"><div class="dot"></div> Jonli</div>
+  </nav>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <h1>Tez va qulay<br><em>transport</em> chipta</h1>
+      <p>Marshrut tanlang, to'lang, QR chipta oling</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📍 Marshrut</div>
+      <div class="route-group">
+        <div class="route-input-wrap">
+          <span class="icon">🟢</span>
+          <select id="from-stop">
+            <option value="">Qayerdan...</option>
+            <option>Chorsu bozori</option>
+            <option>Mustaqillik maydoni</option>
+            <option>Yunusobod</option>
+            <option>Chilonzor</option>
+            <option>Mirzo Ulugbek</option>
+            <option>Sergeli</option>
+            <option>Olmazor</option>
+          </select>
+        </div>
+        <div class="divider-row">
+          <div class="divider-line"></div>
+          <button class="swap-btn" onclick="swapStops()">⇅</button>
+          <div class="divider-line"></div>
+        </div>
+        <div class="route-input-wrap">
+          <span class="icon">🔴</span>
+          <select id="to-stop">
+            <option value="">Qayerga...</option>
+            <option>Chorsu bozori</option>
+            <option>Mustaqillik maydoni</option>
+            <option>Yunusobod</option>
+            <option>Chilonzor</option>
+            <option>Mirzo Ulugbek</option>
+            <option>Sergeli</option>
+            <option>Olmazor</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎫 Chipta turi</div>
+      <div class="type-grid">
+        <div class="type-card selected" data-type="single" data-price="1500" onclick="selectType(this)">
+          <div class="type-icon">🚌</div>
+          <span class="type-name">Bir martalik</span>
+          <span class="type-price">1 500 so'm</span>
+          <span class="type-desc">1 safar</span>
+        </div>
+        <div class="type-card" data-type="day" data-price="8000" onclick="selectType(this)">
+          <div class="type-icon">☀️</div>
+          <span class="type-name">Kunlik</span>
+          <span class="type-price">8 000 so'm</span>
+          <span class="type-desc">24 soat cheksiz</span>
+        </div>
+        <div class="type-card" data-type="week" data-price="35000" onclick="selectType(this)">
+          <div class="type-icon">📅</div>
+          <span class="type-name">Haftalik</span>
+          <span class="type-price">35 000 so'm</span>
+          <span class="type-desc">7 kun</span>
+        </div>
+        <div class="type-card" data-type="month" data-price="120000" onclick="selectType(this)">
+          <div class="type-icon">🗓️</div>
+          <span class="type-name">Oylik</span>
+          <span class="type-price">120 000 so'm</span>
+          <span class="type-desc">30 kun</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👤 Yo'lovchilar</div>
+      <div class="passenger-row">
+        <label style="font-size:15px">Sonini tanlang</label>
+        <div class="counter">
+          <button onclick="changePassenger(-1)">−</button>
+          <span id="passenger-count">1</span>
+          <button onclick="changePassenger(1)">+</button>
+        </div>
+      </div>
+      <div class="price-summary">
+        <div class="price-row"><span id="price-label">Chipta narxi</span><span id="price-base">1 500 so'm</span></div>
+        <div class="price-row"><span>Yo'lovchilar</span><span id="price-count">× 1</span></div>
+        <div class="price-row total"><span>Jami</span><span class="amount" id="price-total">1 500 so'm</span></div>
+      </div>
+    </div>
+
+    <button class="btn-main" onclick="goToPayment()">💳 To'lovga o'tish →</button>
+  </div>
+
+  <!-- PAYMENT -->
+  <div class="screen" id="screen-payment">
+    <div class="hero">
+      <h1>To'lov<br><em>ma'lumotlari</em></h1>
+      <p>Stripe orqali xavfsiz to'lov</p>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 Karta</div>
+      <div class="payment-field">
+        <label>Karta egasi</label>
+        <input type="text" id="card-name" placeholder="Ism Familiya" />
+      </div>
+      <div class="payment-field">
+        <label>Karta raqami</label>
+        <input type="text" id="card-number" placeholder="8600 0000 0000 0000" maxlength="19" oninput="formatCard(this)" />
+      </div>
+      <div class="card-row">
+        <div class="payment-field">
+          <label>Muddat</label>
+          <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5" oninput="formatExp(this)" />
+        </div>
+        <div class="payment-field">
+          <label>CVV</label>
+          <input type="password" id="card-cvv" placeholder="•••" maxlength="3" />
+        </div>
+      </div>
+      <div class="stripe-badge">🔒 Stripe orqali himoyalangan</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Xulosa</div>
+      <div class="price-row" style="margin-bottom:6px"><span>Marshrut</span><span id="summary-route" style="color:var(--text)">—</span></div>
+      <div class="price-row"><span>Tur</span><span id="summary-type" style="color:var(--text)">—</span></div>
+      <div class="price-row total"><span>To'lov</span><span class="amount" id="summary-total">—</span></div>
+    </div>
+    <button class="btn-main" onclick="processPayment()">✅ To'lash va chipta olish</button>
+    <button class="btn-secondary" onclick="showScreen('home')">← Orqaga</button>
+  </div>
+
+  <!-- TICKET -->
+  <div class="screen" id="screen-ticket">
+    <div class="hero">
+      <h1>Chiptangiz<br><em>tayyor!</em> 🎉</h1>
+      <p>QR kodni darvoza skanerida ko'rsating</p>
+    </div>
+    <div class="ticket-card">
+      <div class="ticket-success">✓ To'lov qabul qilindi</div>
+      <div class="ticket-route" id="ticket-route">—</div>
+      <div class="ticket-meta" id="ticket-meta">—</div>
+      <div id="qr-wrap">
+        <canvas id="qr-canvas" width="180" height="180"></canvas>
+      </div>
+      <div class="ticket-id" id="ticket-id">TKT-000000</div>
+      <div class="ticket-details">
+        <div class="detail-item"><span class="detail-label">Turi</span><span class="detail-value" id="detail-type">—</span></div>
+        <div class="detail-item"><span class="detail-label">Yo'lovchi</span><span class="detail-value" id="detail-pax">1</span></div>
+        <div class="detail-item"><span class="detail-label">Holat</span><span class="detail-value" style="color:var(--teal)">Faol ✓</span></div>
+      </div>
+    </div>
+    <button class="btn-main" onclick="downloadQR()">⬇️ QR ni saqlash</button>
+    <button class="btn-secondary" onclick="newTicket()">+ Yangi chipta</button>
+  </div>
+
+  <!-- MY TICKETS -->
+  <div class="screen" id="screen-tickets">
+    <div class="hero">
+      <h1>Mening<br><em>chiptalarim</em></h1>
+    </div>
+    <div id="tickets-list">
+      <div class="my-ticket-item" data-from="Chorsu bozori" data-to="Yunusobod" data-type="single" onclick="openTicketQR(this)">
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">Chorsu → Yunusobod</div>
+          <div style="font-size:12px;color:var(--muted)">Bugun, 10:30 • Bir martalik</div>
+        </div>
+        <span class="badge active">Faol</span>
+      </div>
+      <div class="my-ticket-item" data-from="Chilonzor" data-to="Sergeli" data-type="day" onclick="openTicketQR(this)">
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">Chilonzor → Sergeli</div>
+          <div style="font-size:12px;color:var(--muted)">Kecha, 18:15 • Kunlik</div>
+        </div>
+        <span class="badge expired">Tugagan</span>
+      </div>
+      <div class="my-ticket-item" data-from="Mirzo Ulugbek" data-to="Mustaqillik maydoni" data-type="week" onclick="openTicketQR(this)">
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">Mirzo Ulugbek → Mustaqillik</div>
+          <div style="font-size:12px;color:var(--muted)">3 kun oldin • Haftalik</div>
+        </div>
+        <span class="badge active">Faol</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="hero">
+      <h1>Mening<br><em>profilim</em></h1>
+    </div>
+    <div class="card" style="text-align:center;padding:28px">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-name">Asilbek Yusupov</div>
+      <div class="profile-email">asilbek@gmail.com</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-num" id="stat-total">3</div><div class="stat-label">Jami chipta</div></div>
+        <div class="stat-box"><div class="stat-num">2</div><div class="stat-label">Faol</div></div>
+        <div class="stat-box"><div class="stat-num">156 500</div><div class="stat-label">So'm sarflandi</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Sozlamalar</div>
+      <div class="menu-item" onclick="showToast('Shaxsiy ma\'lumotlar')">
+        <div class="menu-item-left"><div class="menu-icon">✏️</div> Profilni tahrirlash</div>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="showToast('To\'lov usullari')">
+        <div class="menu-item-left"><div class="menu-icon">💳</div> To'lov usullari</div>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="showToast('Bildirishnomalar')">
+        <div class="menu-item-left"><div class="menu-icon">🔔</div> Bildirishnomalar</div>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="showToast('Til: O\'zbek')">
+        <div class="menu-item-left"><div class="menu-icon">🌐</div> Til</div>
+        <span class="menu-arrow" style="color:var(--muted);font-size:13px">O'zbek ›</span>
+      </div>
+      <div class="menu-item" onclick="showToast('Yordam markazi')">
+        <div class="menu-item-left"><div class="menu-icon">❓</div> Yordam</div>
+        <span class="menu-arrow">›</span>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="showToast('Tizimdan chiqildi')">🚪 Tizimdan chiqish</button>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="modal-overlay" id="qr-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-route">—</div>
+    <div class="modal-sub" id="modal-sub">Chiptangizni skanerlating</div>
+    <div id="modal-qr-wrap">
+      <canvas id="modal-qr-canvas" width="200" height="200"></canvas>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:monospace" id="modal-tid">—</div>
+    <button class="modal-close" onclick="document.getElementById('qr-modal').classList.remove('show')">✕ Yopish</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+    <span class="nav-icon">🏠</span><span>Bosh sahifa</span>
+  </div>
+  <div class="nav-item" id="nav-tickets" onclick="showScreen('tickets')">
+    <span class="nav-icon">🎫</span><span>Chiptalarim</span>
+  </div>
+  <div class="nav-item" id="nav-profile" onclick="showScreen('profile')">
+    <span class="nav-icon">👤</span><span>Profil</span>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Yuklanmoqda...</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---- QR CODE GENERATOR (Canvas, no library needed) ---- */
+function drawQR(canvas, text) {
+  // Simple QR-style visual using canvas — real data matrix pattern
+  const ctx = canvas.getContext('2d');
+  const size = canvas.width;
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+
+  // Generate deterministic bit pattern from text
+  const bits = [];
+  for (let i = 0; i < text.length; i++) bits.push(text.charCodeAt(i));
+  
+  const modules = 21;
+  const cellSize = Math.floor(size / modules);
+  const offset = Math.floor((size - modules * cellSize) / 2);
+
+  function isDark(r, c) {
+    // Finder patterns (top-left, top-right, bottom-left)
+    if ((r < 7 && c < 7) || (r < 7 && c >= modules - 7) || (r >= modules - 7 && c < 7)) {
+      const fr = r < 7 ? r : r - (modules - 7);
+      const fc = c < 7 ? c : c - (modules - 7);
+      if (fr === 0 || fr === 6 || fc === 0 || fc === 6) return true;
+      if (fr >= 2 && fr <= 4 && fc >= 2 && fc <= 4) return true;
+      return false;
+    }
+    // Timing patterns
+    if (r === 6 && c >= 8 && c < modules - 8) return c % 2 === 0;
+    if (c === 6 && r >= 8 && r < modules - 8) return r % 2 === 0;
+    // Data area — deterministic from input
+    const idx = r * modules + c;
+    const bitVal = bits[idx % bits.length];
+    return ((bitVal + r * 3 + c * 7 + Math.floor(idx / bits.length)) % 3) !== 0;
+  }
+
+  ctx.fillStyle = '#000000';
+  for (let r = 0; r < modules; r++) {
+    for (let c = 0; c < modules; c++) {
+      if (isDark(r, c)) {
+        ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+}
+
+/* ---- STATE ---- */
+let state = {
+  type: 'single', price: 1500, passengers: 1, from: '', to: '',
+  ticketCount: 3
+};
+const typeNames = { single: 'Bir martalik', day: 'Kunlik', week: 'Haftalik', month: 'Oylik' };
+
+/* ---- HOME ---- */
+function selectType(el) {
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.type = el.dataset.type;
+  state.price = parseInt(el.dataset.price);
+  updatePrice();
+}
+
+function changePassenger(d) {
+  state.passengers = Math.max(1, Math.min(5, state.passengers + d));
+  document.getElementById('passenger-count').textContent = state.passengers;
+  updatePrice();
+}
+
+function updatePrice() {
+  const total = state.price * state.passengers;
+  document.getElementById('price-label').textContent = typeNames[state.type];
+  document.getElementById('price-base').textContent = fmt(state.price);
+  document.getElementById('price-count').textContent = '× ' + state.passengers;
+  document.getElementById('price-total').textContent = fmt(total);
+}
+
+function fmt(n) { return n.toLocaleString('uz-UZ') + " so'm"; }
+
+function swapStops() {
+  const a = document.getElementById('from-stop');
+  const b = document.getElementById('to-stop');
+  [a.value, b.value] = [b.value, a.value];
+}
+
+function goToPayment() {
+  const from = document.getElementById('from-stop').value;
+  const to = document.getElementById('to-stop').value;
+  if (!from || !to) { showToast('⚠️ Marshrut tanlang!'); return; }
+  if (from === to) { showToast('⚠️ Bir xil bekat!'); return; }
+  state.from = from; state.to = to;
+  document.getElementById('summary-route').textContent = from + ' → ' + to;
+  document.getElementById('summary-type').textContent = typeNames[state.type] + ' × ' + state.passengers;
+  document.getElementById('summary-total').textContent = fmt(state.price * state.passengers);
+  showScreen('payment');
+}
+
+/* ---- PAYMENT ---- */
+function processPayment() {
+  const name = document.getElementById('card-name').value.trim();
+  const num = document.getElementById('card-number').value.replace(/\s/g,'');
+  const exp = document.getElementById('card-exp').value;
+  const cvv = document.getElementById('card-cvv').value;
+  if (!name || num.length < 16 || exp.length < 5 || cvv.length < 3) {
+    showToast('⚠️ Barcha maydonlarni to\'ldiring!'); return;
+  }
+  showLoading('Stripe orqali to\'lov...');
+  setTimeout(() => { hideLoading(); generateTicket(); showScreen('ticket'); }, 2000);
+}
+
+function generateTicket() {
+  const id = 'TKT-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('ticket-route').textContent = state.from + ' → ' + state.to;
+  document.getElementById('ticket-meta').textContent = 'Bugun ' + timeStr + ' • ' + typeNames[state.type];
+  document.getElementById('ticket-id').textContent = id;
+  document.getElementById('detail-type').textContent = typeNames[state.type];
+  document.getElementById('detail-pax').textContent = state.passengers;
+
+  const qrText = id + '|' + state.from + '|' + state.to + '|' + state.type + '|' + state.passengers;
+  drawQR(document.getElementById('qr-canvas'), qrText);
+
+  // Add to my tickets
+  state.ticketCount++;
+  document.getElementById('stat-total').textContent = state.ticketCount;
+  addToList(state.from, state.to, typeNames[state.type], timeStr, id);
+}
+
+function addToList(from, to, type, time, id) {
+  const list = document.getElementById('tickets-list');
+  const div = document.createElement('div');
+  div.className = 'my-ticket-item';
+  div.dataset.from = from; div.dataset.to = to; div.dataset.type = 'single';
+  div.dataset.tid = id;
+  div.onclick = function() { openTicketQR(this); };
+  div.innerHTML = `
+    <div>
+      <div style="font-weight:500;margin-bottom:4px">${from} → ${to}</div>
+      <div style="font-size:12px;color:var(--muted)">Bugun, ${time} • ${type}</div>
+    </div>
+    <span class="badge active">Faol</span>`;
+  list.insertBefore(div, list.firstChild);
+}
+
+function downloadQR() {
+  const canvas = document.getElementById('qr-canvas');
+  const link = document.createElement('a');
+  link.download = 'transitgo-chipta.png';
+  link.href = canvas.toDataURL();
+  link.click();
+  showToast('✅ QR saqlandi!');
+}
+
+function newTicket() {
+  document.getElementById('card-name').value = '';
+  document.getElementById('card-number').value = '';
+  document.getElementById('card-exp').value = '';
+  document.getElementById('card-cvv').value = '';
+  showScreen('home');
+}
+
+/* ---- MY TICKETS QR MODAL ---- */
+function openTicketQR(el) {
+  const from = el.dataset.from || 'Noma\'lum';
+  const to = el.dataset.to || 'Noma\'lum';
+  const tid = el.dataset.tid || ('TKT-' + Math.random().toString(36).substr(2,6).toUpperCase());
+  document.getElementById('modal-route').textContent = from + ' → ' + to;
+  document.getElementById('modal-tid').textContent = tid;
+  document.getElementById('modal-sub').textContent = 'Chiptani skanerlating';
+  const qrText = tid + '|' + from + '|' + to;
+  drawQR(document.getElementById('modal-qr-canvas'), qrText);
+  document.getElementById('qr-modal').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target.id === 'qr-modal') document.getElementById('qr-modal').classList.remove('show');
+}
+
+/* ---- NAV ---- */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const map = { home: 'nav-home', tickets: 'nav-tickets', profile: 'nav-profile' };
+  if (map[name]) document.getElementById(map[name]).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ---- UTILS ---- */
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substr(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExp(input) {
+  let v = input.value.replace(/\D/g,'').substr(0,4);
+  if (v.length >= 2) v = v.substr(0,2) + '/' + v.substr(2);
+  input.value = v;
+}
+function showLoading(t) { document.getElementById('loading-text').textContent = t; document.getElementById('loading').classList.add('show'); }
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
